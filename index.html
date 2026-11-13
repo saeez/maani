@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Security: the page may run only its own scripts, and may talk only to the two Quran APIs and Google Fonts.
+     Anything else (injected scripts, other servers, plugins) is blocked by the browser. Works on any host. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; style-src-elem 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self'; connect-src https://api.quran.com https://mcp.quran.ai; manifest-src 'self'; base-uri 'none'; form-action 'self'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>قرآنی الفاظ: معنی، مادہ اور مقامات</title>
+<meta name="description" content="قرآن کی کسی بھی آیت کے ہر لفظ کے معانی چنیں اور جوڑیں، ہر لفظ کا مادہ اور صرف دیکھیں، اور اسی مادے کے تمام قرآنی مقامات تلاش کریں۔ جلالین، قرطبی، ابو حیان، ابن کثیر سمیت تفاسیر۔">
+<meta name="theme-color" content="#eef1f5" id="themeColor">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<!-- link previews (WhatsApp, Facebook, X, Telegram): og:image must be an absolute URL -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ur_PK">
+<meta property="og:title" content="قرآنی الفاظ: معنی، مادہ اور مقامات">
+<meta property="og:description" content="کسی بھی آیت کے ہر لفظ کے معانی چنیں، جوڑیں، اور ہر مادے کے تمام قرآنی مقامات دیکھیں۔">
+<meta property="og:image" content="https://YOUR-DOMAIN.com/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="قرآنی الفاظ کے کارڈ، جن کے معانی لکیروں سے جڑے ہیں">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.quran.com" crossorigin>
+<link rel="preconnect" href="https://mcp.quran.ai" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri&family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+  <aside class="panel" id="panel">
+    <header>
+      <h1>قرآنی الفاظ: معنی، مادہ اور مقامات</h1>
+      <p class="sub">آیات شامل کریں، ہر لفظ کا ایک معنی چنیں، اور معانی کو لکیروں سے جوڑ کر دیکھیں کہ مطلب کیسے بدلتا ہے۔ کسی لفظ پر ٹیپ کریں تو اس کا مادہ اور قرآن میں اس مادے کے تمام مقامات دکھیں گے۔</p>
+    </header>
+
+    <section>
+      <h2>آیات</h2>
+      <form class="addform" id="addForm">
+        <select id="surahSel" aria-label="سورہ"></select>
+        <input id="ayahFrom" type="text" inputmode="numeric" autocomplete="off" placeholder="آیت" aria-label="آیت نمبر، یا سیدھا 2:255 لکھیں">
+        <input id="ayahTo" type="text" inputmode="numeric" autocomplete="off" placeholder="تک" aria-label="آخری آیت (اختیاری)">
+        <button class="btn primary" type="submit">شامل کریں</button>
+      </form>
+      <div class="msg" id="addMsg"></div>
+      <div class="chips" id="ayahChips"></div>
+    </section>
+
+    <div class="tiles" id="tiles"></div>
+
+    <section>
+      <h2>منتخب لفظ</h2>
+      <div class="detail" id="detail"></div>
+    </section>
+
+    <section>
+      <h2>آپ کے انتخاب سے بنتا مطلب (لفظ بہ لفظ)</h2>
+      <div id="reading"></div>
+    </section>
+
+    <details open id="tafsirSec">
+      <summary>تفسیر</summary>
+      <select class="field" id="tafsirSel" aria-label="تفسیر چنیں"></select>
+      <div class="meta" id="tafsirMeta" style="margin:6px 0"></div>
+      <div class="tafsir" id="tafsir"></div>
+    </details>
+
+    <details open>
+      <summary>آپ کی زنجیریں</summary>
+      <div id="chains"></div>
+      <div class="btns" style="margin-top:8px">
+        <button class="btn" id="copyBtn">زنجیریں کاپی کریں</button>
+        <button class="btn danger" id="clearBtn">لنک اور انتخاب صاف کریں</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </details>
+
+    <details open id="presetSec" hidden>
+      <summary>مفسرین کی قراءتیں (البقرہ 2:102)</summary>
+      <div class="presets" id="presets"></div>
+    </details>
+
+    <details>
+      <summary>ترجمے اور ترتیبات</summary>
+      <div class="checks" id="trChecks"></div>
+      <label style="display:flex;gap:6px;align-items:center;margin-top:8px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="showEn"> کارڈ پر انگریزی لفظی معنی بھی دکھائیں</label>
+    </details>
+
+    <details>
+      <summary>رنگ کس ماخذ کا ہے</summary>
+      <div class="legend" id="legend"></div>
+    </details>
+
+    <details class="sources">
+      <summary>ماخذ اور اعتبار</summary>
+      <p style="margin:0">قرآن کا متن، لفظی ترجمے (اردو، انگریزی) اور آیات کے ترجمے <a href="https://quran.com" target="_blank" rel="noopener">Quran.com</a> (Quran Foundation) کے API سے براہِ راست آتے ہیں۔ ہر لفظ کا مادہ، لیما، صرفی تجزیہ، مادے کی گنتی اور تمام مقامات، اور عربی و انگریزی تفاسیر <a href="https://quran.ai" target="_blank" rel="noopener">quran.ai</a> کے MCP سرور سے آتی ہیں، جس کا صرفی ڈیٹا <a href="https://corpus.quran.com" target="_blank" rel="noopener">Quranic Arabic Corpus</a> پر مبنی ہے۔ اردو تفاسیر Quran.com سے ہیں۔</p>
+      <p>"لفظ بہ لفظ" مطلب آپ کے انتخاب کا ایک خاکہ ہے، تفسیر نہیں۔ آپ کے اپنے لکھے معانی صرف آپ کے براؤزر میں محفوظ ہوتے ہیں۔</p>
+      <div id="curSources"></div>
+    </details>
+  </aside>
+  <div class="split" id="split" role="separator" aria-orientation="vertical" aria-label="پینل کی چوڑائی" tabindex="0"></div>
+
+  <main class="stage" id="stage" aria-label="معانی کا کینوس">
+    <div class="toolbar">
+      <button class="btn primary" id="linkMode" hidden>لنک: اب دوسرے لفظ کا پِل چنیں ✕</button>
+      <button class="btn danger" id="delLink" hidden>✕ منتخب لنک ہٹائیں</button>
+      <button class="btn" id="theme"></button>
+      <button class="btn" id="zin" aria-label="قریب کریں">+</button>
+      <button class="btn" id="zout" aria-label="دور کریں">−</button>
+      <button class="btn" id="fit">پورا دکھائیں</button>
+      <button class="btn" id="relayout">ترتیب بحال کریں</button>
+    </div>
+    <div class="status" id="status" hidden></div>
+    <div class="world" id="world">
+      <svg class="links" id="links" width="10" height="10"></svg>
+    </div>
+    <div class="hint"><span class="h-fine">پِل پر کلک: معنی چنیں · لفظ پر کلک: مادہ اور مقامات · پِل کھینچ کر دوسرے پِل پر چھوڑیں: لنک · لفظ کھینچیں: کارڈ ہلائیں · خالی جگہ کھینچیں یا اسکرول: کینوس ہلائیں · پنچ یا Ctrl+اسکرول: زوم</span><span class="h-touch">پِل پر ٹیپ: معنی چنیں · لفظ پر ٹیپ: مادہ اور مقامات · ایک انگلی: کینوس ہلائیں · دو انگلیاں: زوم · لنک: پِل چنیں، پھر "اس سے لنک بنائیں"</span></div>
+  </main>
+</div>
+<noscript><p style="padding:16px">یہ صفحہ JavaScript کے بغیر نہیں چلتا۔</p></noscript>
+<script src="data/surahs.js"></script>
+<script src="data/curated.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+# Security for Apache / LiteSpeed hosting (cPanel, Hostinger, Namecheap, GoDaddy, Bluehost…).
+# Netlify and Cloudflare Pages ignore this file and use _headers instead.
+# The list of servers the page may talk to (Content Security Policy) lives in index.html.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Always HTTPS. Turn on the free SSL certificate in your hosting panel BEFORE uploading,
+  # otherwise this redirect leads to a page that cannot load.
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # Hidden files (.git, .DS_Store, .env …) are never served; /.well-known stays reachable.
+  RewriteRule (^|/)\.(?!well-known/) - [F]
+</IfModule>
+
+# No folder listings (e.g. /assets/). If your host answers "500 Internal Server Error", delete this line.
+Options -Indexes
+
+AddType application/manifest+json .webmanifest
+
+<IfModule mod_headers.c>
+  # Other sites may not show this site inside a frame (clickjacking).
+  Header always set Content-Security-Policy "frame-ancestors 'none'"
+  Header always set X-Frame-Options "DENY"
+  # Browsers must trust the declared file types, never guess them.
+  Header always set X-Content-Type-Options "nosniff"
+  # Other sites learn only the domain a visitor came from, not the page.
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # The site needs no camera, microphone, location, payments or USB.
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  # Once a visitor has used HTTPS, their browser refuses plain HTTP here for a year.
+  Header always set Strict-Transport-Security "max-age=31536000" "expr=%{HTTPS} == 'on'"
+  Header always unset X-Powered-By
+</IfModule>
