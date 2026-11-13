@@ -50,6 +50,8 @@ summary:hover{color:var(--ink)}
 .addform{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .addform select{flex:1 1 170px;min-width:0}
 .addform input{width:68px}
+.addform #surahFind{width:auto;flex:1 1 120px;min-width:0}
+.addform #surahFind.nomatch{border-color:var(--s-Q)}
 .addform select,.addform input,.field{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:3px 8px;min-height:32px}
 .field{width:100%}
 .addform select:focus,.addform input:focus,.field:focus{border-color:var(--accent);outline:none}

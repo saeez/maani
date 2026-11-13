@@ -1,0 +1,6 @@
+# All search engines may index the whole site.
+# Replace YOUR-DOMAIN.com with your domain (same as in sitemap.xml and index.html).
+User-agent: *
+Allow: /
+
+Sitemap: https://YOUR-DOMAIN.com/sitemap.xml

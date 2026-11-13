@@ -668,6 +668,27 @@ $("trChecks").addEventListener("change", e=>{
   for(const key of S.ayahs) if(VERSES[key]?.words) for(const i of S.tr) loadTr(i,key).then(renderReading, ()=>{});
 });
 $("showEn").addEventListener("change", e=>{ S.showEn=e.target.checked; save(); renderAll(); });
+/* surah finder: typing a number, Arabic/Urdu name or transliteration moves the dropdown to that surah.
+   Names are compared loosely: no harakat, no ال / Al-, Urdu and Arabic letter forms treated alike, alif ignored. */
+const normAr = s => String(s).normalize("NFKD").replace(/[ً-ٰٟۖ-ۭـ]/g,"")
+  .replace(/[ٱ]/g,"ا").replace(/[یےۍى]/g,"ي").replace(/ک/g,"ك").replace(/[ہۃةۀھ]/g,"ه").replace(/^ال/,"").replace(/[\sا]/g,"");
+const normLat = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/^(al|an|ar|as|at|ad|adh|az|ash|ath)-/,"").replace(/[^a-z]/g,"");
+const SURAH_KEYS = SURAHS.map(s=>[normAr(s[0]), normLat(s[1]), s[1].toLowerCase().replace(/[^a-z]/g,""), normAr(s[2])]);
+function findSurah(q){
+  const n=toLatin(q).match(/^\s*(\d+)/); if(n) return SURAHS[+n[1]-1] ? +n[1] : 0;
+  const keys=[normAr(q), normLat(q)].filter(Boolean); if(!keys.length) return 0;
+  for(const test of [(k,q)=>k===q, (k,q)=>k.startsWith(q), (k,q)=>k.includes(q)])   /* exact, then prefix, then anywhere */
+    for(let i=0;i<SURAH_KEYS.length;i++) if(keys.some(q=>SURAH_KEYS[i].some(k=>k && test(k,q)))) return i+1;
+  return 0;
+}
+$("surahFind").addEventListener("input", e=>{
+  const s=findSurah(e.target.value), empty=!e.target.value.trim();
+  if(s) $("surahSel").value=s;
+  e.target.classList.toggle("nomatch", !s && !empty);
+  if(!s && !empty) flashMsg("اس نام یا نمبر کی کوئی سورہ نہیں ملی۔","addMsg");
+});
+$("surahFind").addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.isComposing){ e.preventDefault(); $("ayahFrom").focus(); } });   /* Enter: on to the ayah number */
+$("surahSel").addEventListener("change", ()=>{ $("surahFind").value=""; $("surahFind").classList.remove("nomatch"); });
 $("addForm").addEventListener("submit", e=>{
   e.preventDefault();
   let s=+$("surahSel").value, a, b;
