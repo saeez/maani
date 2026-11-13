@@ -63,7 +63,7 @@ Links can join words in different ayahs. Connected links form chains under **آ�
 
 - **یہ زنجیر بطور مطلب چنیں** selects every meaning in a chain.
 - **زنجیریں کاپی کریں** copies all chains as text.
-- To remove a link, tap it on the canvas and press **✕ منتخب لنک ہٹائیں**, or press **×** next to it in the chains list.
+- To remove a link, tap it on the canvas and press **Delete** or **Backspace** on the keyboard (or the **منتخب لنک ہٹائیں** button), or press **×** next to it in the chains list.
 
 ### 7. Tafsir and translations
 

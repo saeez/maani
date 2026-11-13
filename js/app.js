@@ -55,6 +55,19 @@ const cmpKey = (a,b) => { const [s1,a1]=a.k.split(":").map(Number), [s2,a2]=b.k.
 const validAyah = k => { const m=/^(\d{1,3}):(\d{1,3})$/.exec(String(k)); return !!m && SURAHS[m[1]-1] && +m[2]>=1 && +m[2]<=SURAHS[m[1]-1][3]; };
 const validWord = w => typeof w==="string" && /^\d{1,3}:\d{1,3}:\d{1,3}$/.test(w) && validAyah(akey(w));
 const int = v => { const n=Number(v); return Number.isInteger(n) && n>=0 ? n : 0; };
+/* inline icons (our own constants, never built from data) */
+const svgI = d => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  sun: svgI('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+  moon: svgI('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'),
+  x: svgI('<path d="M6 6l12 12M18 6 6 18"/>'),
+  ext: svgI('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
+  link: svgI('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  check: svgI('<path d="m5 12 4.5 4.5L19 7"/>'),
+  target: svgI('<circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>'),
+  plus: svgI('<path d="M12 5v14M5 12h14"/>'),
+  list: svgI('<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>')
+};
 
 /* ================= state ================= */
 const KEY="maani-jaal-quran-v1";
@@ -323,7 +336,7 @@ function syncCanvas(){
     let t=titleEls[key]; if(!t){ t=titleEls[key]=el("div","atitle"); t.dataset.key=key; world.append(t); }
     const v=VERSES[key];
     const st = v?.error ? "لوڈ نہیں ہو سکا، دوبارہ کوشش کے لیے ٹیپ کریں" : (!v?.words ? "لوڈ ہو رہا ہے…" : "");
-    const html=`${esc(surahName(+key.split(":")[0]))} ${esc(key)} <small>${st}</small>`;
+    const html=`${esc(surahName(+key.split(":")[0]))} <span class="k">${esc(key)}</span>${st?` <small>${st}</small>`:""}`;
     if(t.innerHTML!==html) t.innerHTML=html;
   }
   for(const w of Object.keys(cardEls)) if(!WBY[w]){ cardEls[w].remove(); delete cardEls[w]; }
@@ -428,20 +441,20 @@ function centerOnAyah(key){
 /* ================= panel ================= */
 const closedAyahs=new Set();
 function renderChips(){
-  $("ayahChips").innerHTML = S.ayahs.map(key=>`<span class="achip"><button data-goto="${key}" title="کینوس پر دکھائیں">${esc(surahName(+key.split(":")[0]))} ${key}</button><button class="x" data-rm="${key}" aria-label="${key} ہٹائیں">×</button></span>`).join("")
-    || `<span class="empty">ابھی کوئی آیت نہیں۔ سورہ اور آیت چن کر شامل کریں۔</span>`;
+  const cur = focus ? akey(focus.w) : null;
+  $("ayahChips").innerHTML = S.ayahs.map(key=>`<span class="achip${key===cur?" cur":""}"><button data-goto="${key}" title="کینوس پر دکھائیں"><b>${esc(surahName(+key.split(":")[0]))}</b><span class="lat">${key}</span></button><button class="x" data-rm="${key}" aria-label="${key} ہٹائیں" title="ہٹائیں">${ICON.x}</button></span>`).join("");
 }
 function renderTiles(){
   const n=[[S.ayahs.length,"آیات"],[WORDS.length,"الفاظ"],[S.links.filter(linkOK).length,"لنک"],[chains().length,"زنجیریں"]];
-  $("tiles").innerHTML = n.map(([v,l])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join("");
+  $("tiles").innerHTML = n.map(([v,l])=>`<span><b>${v}</b> ${l}</span>`).join("");
 }
 function renderReading(){
   $("reading").innerHTML = S.ayahs.map(key=>{
     const v=VERSES[key], open=closedAyahs.has(key)?"":" open";
-    const head=`<summary><span>${esc(surahName(+key.split(":")[0]))} ${key}</span><a href="https://quran.com/${key}" target="_blank" rel="noopener">quran.com ↗</a></summary>`;
-    if(!v?.words) return `<details class="ayah" data-key="${key}"${open}>${head}<div class="meta">${v?.error
-      ? `<span class="err">لوڈ نہیں ہو سکا (${esc(v.error)})</span> <button class="btn" data-retry="${key}">دوبارہ</button>`
-      : '<span class="spin"></span> لوڈ ہو رہا ہے…'}</div></details>`;
+    const head=`<summary><b>${esc(surahName(+key.split(":")[0]))}</b><span class="tag lat">${key}</span><a href="https://quran.com/${key}" target="_blank" rel="noopener" title="quran.com پر دیکھیں">quran.com ${ICON.ext}</a></summary>`;
+    if(!v?.words) return `<details class="ayah" data-key="${key}"${open}>${head}<div class="ayah-body">${v?.error
+      ? `<span class="err">لوڈ نہیں ہو سکا (${esc(v.error)})</span> <button class="btn sm" data-retry="${key}">دوبارہ کوشش</button>`
+      : '<div class="loading"><span class="spin"></span> لوڈ ہو رہا ہے…</div>'}</div></details>`;
     const reading=WORDS.filter(o=>o.key===key).map(o=>{
       const ms=MEAN[o.w], k=selKey(o.w), m=ms.find(x=>x.k===k)||ms[0];
       return `<span data-w="${o.w}" class="${m.s==="U"?"alt mine":(k!==ms[0].k?"alt":"")}" title="${esc(o.d.ar)}">${esc(m.t)}</span>`;
@@ -450,29 +463,32 @@ function renderReading(){
       return `<div class="match">${ok.length ? "یہ انتخاب ملتا ہے: "+ok.map(p=>`<span class="chip" style="color:${p.color}">${esc(p.name)}</span>`).join("") : "یہ انتخاب مفسرین کی دی گئی قراءتوں میں سے کسی سے پورا نہیں ملتا۔"}</div>`; })() : "";
     const trs=S.tr.map(id=>{ const t=TRANS.find(x=>x[0]===id), txt=TRC[id+"|"+key];
       return `<div class="tr"${t?.[1]==="en"?' dir="ltr"':""}><i>${esc(t?.[2]||id)}</i>${txt==null?'<span class="spin"></span>':esc(txt)}</div>`; }).join("");
-    return `<details class="ayah" data-key="${key}"${open}>${head}<div class="qtext">${esc(v.text)}</div><div class="reading">${reading}</div>${pre}${trs}</details>`;
+    return `<details class="ayah" data-key="${key}"${open}>${head}<div class="ayah-body"><div class="qtext">${esc(v.text)}</div><div class="reading">${reading}</div>${pre}${trs}</div></details>`;
   }).join("") || `<span class="empty">آیات شامل کریں تو یہاں ان کا متن، آپ کے چنے معانی سے بنتا مطلب، اور ترجمے نظر آئیں گے۔</span>`;
 }
 let concMode="root";
 function concHTML(o, mw){
   const mode = mw.root ? concMode : "lemma", total = mode==="root" ? mw.rc : mw.lc;
   if(!total) return "";
-  const c=CONC[mode+"|"+o.w];
-  let h=`<div class="box"><h3>قرآن میں ${mode==="root"?"اسی مادے":"اسی لیما"} کے تمام مقامات</h3>`;
-  if(mw.root) h+=`<div class="toggle" style="margin-bottom:6px"><button data-cmode="root" class="${mode==="root"?"on":""}">مادہ · ${mw.rc}</button><button data-cmode="lemma" class="${mode==="lemma"?"on":""}">لیما · ${mw.lc}</button></div>`;
-  if(!c || (!c.items.length && !c.loading && !c.err)) return h+`<div><button class="btn primary" data-act="conc">${total} مقامات دکھائیں</button></div></div>`;
-  const groups=new Map();
-  for(const it of [...c.items].sort(cmpKey)){ const s=+it.k.split(":")[0]; if(!groups.has(s)) groups.set(s,[]); groups.get(s).push(it); }
-  h+=`<div class="meta">${c.items.length} / ${c.total??"?"} الفاظ · ${c.verses??"?"} آیات · ${groups.size} سورتیں${c.done?"":" (اب تک)"}</div><div class="conc">`;
-  for(const [s,list] of groups){
-    h+=`<div class="sg"><b>${s} · ${esc(surahName(s))}</b> · ${list.length} بار</div><div class="occ">`+
-      list.map(it=>`<button data-occ="${it.k}" data-p="${it.p}" class="${it.k===o.key&&it.p===o.p?"cur":S.ayahs.includes(it.k)?"here":""}" title="${esc(it.k+" · "+it.v)}">${it.k.split(":")[1]} <i>${esc(it.ar)}</i></button>`).join("")+`</div>`;
-  }
+  const c=CONC[mode+"|"+o.w], groups=new Map();
+  for(const it of [...(c?.items||[])].sort(cmpKey)){ const s=+it.k.split(":")[0]; if(!groups.has(s)) groups.set(s,[]); groups.get(s).push(it); }
+  let h=`<div class="wd-block"><div class="lbl">قرآن میں تمام مقامات</div><div class="conc-top">`;
+  if(mw.root) h+=`<div class="seg-ctl" role="group" aria-label="مادہ یا لیما"><button data-cmode="root" class="${mode==="root"?"on":""}">مادہ · ${mw.rc}</button><button data-cmode="lemma" class="${mode==="lemma"?"on":""}">لیما · ${mw.lc}</button></div>`;
+  if(c?.items.length) h+=`<span class="meta">${c.items.length} / ${c.total} الفاظ · ${c.verses} آیات · ${groups.size} سورتیں${c.done?"":" (اب تک)"}</span>`;
   h+=`</div>`;
-  if(c.loading) h+=`<div class="meta"><span class="spin"></span> لوڈ ہو رہا ہے…</div>`;
-  else if(c.err) h+=`<div class="err">${esc(c.err)}</div><button class="btn" data-act="conc">دوبارہ کوشش</button>`;
-  else if(!c.done) h+=`<button class="btn" data-act="conc">اگلے ${Math.min(100,c.total-c.items.length)} لوڈ کریں</button>`;
-  return h+`<div class="meta small">کسی مقام پر ٹیپ کریں تو وہ آیت کینوس میں شامل ہو جائے گی۔ سبز: کینوس پر پہلے سے موجود۔</div></div>`;
+  if(!c || (!c.items.length && !c.loading && !c.err)) return h+`<button class="btn primary block" data-act="conc">${ICON.list}${total} مقامات دکھائیں</button></div>`;
+  if(c.items.length){
+    h+=`<div class="conc">`;
+    for(const [s,list] of groups){
+      h+=`<div class="sg"><b>${s} · ${esc(surahName(s))}</b><span class="tag">${list.length} بار</span></div><div class="occ">`+
+        list.map(it=>`<button data-occ="${it.k}" data-p="${it.p}" class="${it.k===o.key&&it.p===o.p?"cur":S.ayahs.includes(it.k)?"here":""}" title="${esc(it.k+" · "+it.v)}">${it.k.split(":")[1]}<i>${esc(it.ar)}</i></button>`).join("")+`</div>`;
+    }
+    h+=`</div>`;
+  }
+  if(c.loading) h+=`<div class="loading" style="margin-top:8px"><span class="spin"></span> لوڈ ہو رہا ہے…</div>`;
+  else if(c.err) h+=`<div class="err" style="margin-top:8px">${esc(c.err)}</div><button class="btn sm" data-act="conc">دوبارہ کوشش</button>`;
+  else if(!c.done) h+=`<button class="btn sm block" style="margin-top:8px" data-act="conc">اگلے ${Math.min(100,c.total-c.items.length)} لوڈ کریں</button>`;
+  return h+`<div class="hintline">کسی مقام پر ٹیپ کریں تو وہ آیت کینوس میں شامل ہو جائے گی۔ سبز: کینوس پر پہلے سے موجود · سنہری: یہی لفظ۔</div></div>`;
 }
 function renderDetail(){
   const d=$("detail");
@@ -481,28 +497,38 @@ function renderDetail(){
   const same=d.dataset.w===focus.w, keep={a:$("mineIn")?.value||"", b:$("mineNote")?.value||"", st:d.querySelector(".conc")?.scrollTop||0, act:document.activeElement?.id};
   const o=WBY[focus.w], m=meaning(focus.w,focus.k)||MEAN[focus.w][0], key=o.key, M=MORPH[key], mw=M?.[o.p];
   const conn=S.links.filter(L=>(L.a.w===focus.w&&L.a.k===m.k)||(L.b.w===focus.w&&L.b.k===m.k)).length;
-  let h=`<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="ar">${esc(o.d.ar)}</span><span class="meta">${esc(surahName(+key.split(":")[0]))} ${key} · لفظ ${o.p}${o.d.tl?` · <span dir="ltr">${esc(o.d.tl)}</span>`:""}</span></div>`;
-  h+=`<div class="t">${esc(m.t)}</div><div class="meta"><span style="color:var(--s-${m.s})">${esc(SRC[m.s])}</span>${m.n?" · قول: "+esc(m.n):""}</div>${m.d?`<div class="small">${esc(m.d)}</div>`:""}`;
-  h+=`<div class="meta">${conn?conn+" لنک اس معنی سے جڑے ہیں":"اس معنی سے ابھی کوئی لنک نہیں"}</div>`;
-  h+=`<div class="btns"><button class="btn primary" data-act="choose">یہ معنی چنیں</button><button class="btn" data-act="goto">کینوس پر دکھائیں</button><button class="btn${linkFrom?" primary":""}" data-act="link">${linkFrom?"لنک منسوخ کریں":"اس سے لنک بنائیں"}</button></div>`;
-  const mine=S.custom[focus.w]||[];
-  h+=`<div class="box"><h3>اپنا معنی شامل کریں</h3><div class="mine"><input class="field" id="mineIn" placeholder="اس لفظ کا اپنا معنی" aria-label="اپنا معنی"><input class="field" id="mineNote" placeholder="ماخذ / نوٹ (اختیاری)" aria-label="ماخذ یا نوٹ"><button class="btn" data-act="mine">شامل کریں</button></div>`+
-     (mine.length ? `<div class="mylist" style="margin-top:6px">${mine.map(x=>`<div><span>${esc(x.t)}${x.n?` <span class="muted small">(${esc(x.n)})</span>`:""}</span><button class="btn danger" data-delmine="${esc(x.k)}" aria-label="یہ معنی ہٹائیں">×</button></div>`).join("")}</div>` : "")+`</div>`;
-  h+=`<div class="box"><h3>صرف اور مادہ <span class="muted small">· quran.ai (Quranic Arabic Corpus)</span></h3>`;
-  if(!M) h += MORPH_ERR[key] ? `<span class="err">صرفی ڈیٹا لوڈ نہیں ہو سکا (${esc(MORPH_ERR[key])})</span> <button class="btn" data-act="remorph">دوبارہ</button>` : `<span class="spin"></span> <span class="meta">لوڈ ہو رہا ہے…</span>`;
-  else if(!mw) h+=`<span class="meta">اس لفظ کا صرفی ڈیٹا نہیں ملا۔</span>`;
+  let h=`<div class="wd-head"><span class="ar">${esc(o.d.ar)}</span><div class="wd-ref"><span class="tag">${esc(surahName(+key.split(":")[0]))} <span class="lat">${key}</span> · لفظ ${o.p}</span>${o.d.tl?`<span class="lat">${esc(o.d.tl)}</span>`:""}</div></div>`;
+  h+=`<div class="wd-block wd-meaning"><div class="lbl">منتخب معنی</div><div class="t">${esc(m.t)}</div>`+
+     `<div class="srcline"><span class="dot" style="background:var(--s-${m.s})"></span>${esc(SRC[m.s])}${m.n?` · قول: ${esc(m.n)}`:""}</div>`+
+     (m.d?`<p class="note">${esc(m.d)}</p>`:"")+
+     `<div class="links">${conn?conn+" لنک اس معنی سے جڑے ہیں":"اس معنی سے ابھی کوئی لنک نہیں"}</div>`+
+     `<div class="btns"><button class="btn primary sm" data-act="choose">${ICON.check}یہ معنی چنیں</button><button class="btn sm" data-act="goto">${ICON.target}کینوس پر دکھائیں</button><button class="btn sm${linkFrom?" primary":""}" data-act="link">${ICON.link}${linkFrom?"لنک منسوخ کریں":"اس سے لنک بنائیں"}</button></div></div>`;
+  h+=`<div class="wd-block"><div class="lbl">مادہ اور لیما <span class="src">· quran.ai</span></div>`;
+  if(!M) h += MORPH_ERR[key] ? `<span class="err">صرفی ڈیٹا لوڈ نہیں ہو سکا (${esc(MORPH_ERR[key])})</span> <button class="btn sm" data-act="remorph">دوبارہ کوشش</button>` : `<div class="loading"><span class="spin"></span> لوڈ ہو رہا ہے…</div>`;
+  else if(!mw) h+=`<span class="muted small">اس لفظ کا صرفی ڈیٹا نہیں ملا۔</span>`;
   else {
-    h+=`<dl class="kv">`;
-    h+= mw.root ? `<dt>مادہ</dt><dd><span class="rootl">${esc(spaced(mw.root))}</span> · قرآن میں <b>${mw.rc}</b> بار، <b>${mw.rv}</b> آیات میں</dd>`
-                : `<dt>مادہ</dt><dd class="muted">کوئی مادہ نہیں (حرف یا ضمیر)</dd>`;
-    if(mw.lemma) h+=`<dt>لیما</dt><dd><span class="rootl" style="letter-spacing:0">${esc(mw.lemma)}</span> · <b>${mw.lc}</b> بار، <b>${mw.lv}</b> آیات میں</dd>`;
-    for(const [f,label] of FEAT) if(mw.f[f]!=null) h+=`<dt>${label}</dt><dd>${esc(f==="verb_form" ? "Form "+(ROMAN[mw.f[f]]||mw.f[f]) : urf(mw.f[f]))}</dd>`;
-    h+=`</dl>`;
-    if(mw.seg.length>1) h+=`<div class="seg" style="margin-top:4px">${mw.seg.map(([t,g])=>`<span><b>${esc(t)}</b> <span class="en" style="display:inline">${esc(g)}</span></span>`).join("")}</div>`;
-    if(mw.desc) h+=`<div class="en" style="margin-top:4px">${esc(mw.desc)}</div>`;
+    h+=`<div class="roots">`+
+      (mw.root ? `<div class="rootcard main"><div class="k">مادہ</div><div class="v">${esc(spaced(mw.root))}</div><div class="n">قرآن میں <b>${mw.rc}</b> بار · <b>${mw.rv}</b> آیات</div></div>`
+               : `<div class="rootcard none"><div class="k">مادہ</div><div class="v">کوئی مادہ نہیں (حرف یا ضمیر)</div></div>`)+
+      (mw.lemma ? `<div class="rootcard"><div class="k">لیما</div><div class="v">${esc(mw.lemma)}</div><div class="n"><b>${mw.lc}</b> بار · <b>${mw.lv}</b> آیات</div></div>` : "")+
+      `</div>`;
   }
   h+=`</div>`;
-  if(mw) h+=concHTML(o, mw);
+  if(mw){
+    h+=concHTML(o, mw);
+    const facts=FEAT.filter(([f])=>mw.f[f]!=null).map(([f,label])=>{
+      const v=mw.f[f];
+      if(f==="verb_form") return `<div><dt>${label}</dt><dd><span class="lat">Form ${esc(ROMAN[v]||v)}</span></dd></div>`;
+      const u=UR[String(v).toLowerCase()];
+      return `<div><dt>${label}</dt><dd>${esc(u||v)}${u?` <span class="lat">${esc(v)}</span>`:""}</dd></div>`;
+    }).join("");
+    h+=`<div class="wd-block"><div class="lbl">صرفی تجزیہ</div>`+(facts?`<dl class="facts kv">${facts}</dl>`:"")+
+       (mw.seg.length>1?`<div class="segs">${mw.seg.map(([t,g])=>`<span><b>${esc(t)}</b><span class="lat">${esc(g)}</span></span>`).join("")}</div>`:"")+
+       (mw.desc?`<p class="desc lat">${esc(mw.desc)}</p>`:"")+`</div>`;
+  }
+  const mine=S.custom[focus.w]||[];
+  h+=`<div class="wd-block"><div class="lbl">اپنا معنی شامل کریں</div><div class="mine"><input id="mineIn" placeholder="اس لفظ کا اپنا معنی" aria-label="اپنا معنی"><input id="mineNote" placeholder="ماخذ / نوٹ (اختیاری)" aria-label="ماخذ یا نوٹ"><button class="btn" data-act="mine">${ICON.plus}شامل کریں</button></div>`+
+     (mine.length ? `<div class="mylist">${mine.map(x=>`<div><span>${esc(x.t)}${x.n?` <span class="muted small">(${esc(x.n)})</span>`:""}</span><button class="btn icon danger" data-delmine="${esc(x.k)}" aria-label="یہ معنی ہٹائیں" title="ہٹائیں">${ICON.x}</button></div>`).join("")}</div>` : "")+`</div>`;
   d.innerHTML=h; d.dataset.w=focus.w;
   if(same){
     $("mineIn").value=keep.a; $("mineNote").value=keep.b;
@@ -538,18 +564,18 @@ function renderTafsir(){
 function renderChains(){
   const ch=chains();
   $("chains").innerHTML = ch.length ? ch.map((c,ci)=>{
-    const nodes=c.nodes.map(n=>`<span class="n">${akey(n.w)}:${wpos(n.w)} <i>${esc(WBY[n.w].d.ar)}</i>: ${esc(meaning(n.w,n.k).t)}</span>`).join(" ← ");
+    const nodes=c.nodes.map(n=>`<span class="n"><em>${akey(n.w)}:${wpos(n.w)}</em><i>${esc(WBY[n.w].d.ar)}</i>${esc(meaning(n.w,n.k).t)}</span>`).join(`<span class="arr">←</span>`);
     const rows=c.links.map(L=>{ const p=presetOf(L.src);
-      return `<div class="linkrow${selLink===L.id?" sel":""}" data-id="${esc(L.id)}"><span style="display:flex;align-items:center;gap:6px"><span class="sw" style="background:${colorOf(L)}"></span>${akey(L.a.w)}:${wpos(L.a.w)} ↔ ${akey(L.b.w)}:${wpos(L.b.w)}${p?" · "+esc(p.name):" · آپ کا"}</span><button class="x" data-del="${esc(L.id)}" aria-label="لنک ہٹائیں">×</button></div>`; }).join("");
-    return `<div class="chain"><div class="nodes">${nodes}</div>${rows}<div class="btns"><button class="btn" data-apply="${ci}">یہ زنجیر بطور مطلب چنیں</button></div></div>`;
-  }).join("") : `<span class="empty">ابھی کوئی لنک نہیں۔ کینوس پر پِل کو کھینچ کر دوسرے لفظ کے پِل پر چھوڑیں، یا "اس سے لنک بنائیں" استعمال کریں۔ مختلف آیات کے الفاظ بھی جوڑے جا سکتے ہیں۔</span>`;
+      return `<div class="linkrow${selLink===L.id?" sel":""}" data-id="${esc(L.id)}"><span class="lr"><span class="sw" style="background:${colorOf(L)}"></span><span class="lat">${akey(L.a.w)}:${wpos(L.a.w)} ↔ ${akey(L.b.w)}:${wpos(L.b.w)}</span>${p?esc(p.name):"آپ کا لنک"}</span><button class="btn icon danger" data-del="${esc(L.id)}" aria-label="لنک ہٹائیں" title="لنک ہٹائیں">${ICON.x}</button></div>`; }).join("");
+    return `<div class="chain"><div class="nodes">${nodes}</div><div>${rows}</div><div class="btns"><button class="btn sm" data-apply="${ci}">${ICON.check}یہ زنجیر بطور مطلب چنیں</button></div></div>`;
+  }).join("") : `<span class="empty">ابھی کوئی لنک نہیں۔ کینوس پر پِل کو کھینچ کر دوسرے لفظ کے پِل پر چھوڑیں، یا "اس سے لنک بنائیں" استعمال کریں۔ مختلف آیات کے الفاظ بھی جوڑے جا سکتے ہیں۔ لنک ہٹانے کے لیے اسے چنیں اور Delete دبائیں۔</span>`;
 }
 function renderPresets(){
   const keys=S.ayahs.filter(k=>CUR[k]?.presets);
   $("presetSec").hidden=!keys.length;
   $("presets").innerHTML = keys.flatMap(key=>CUR[key].presets.map(p=>{
     const has=S.links.some(L=>L.src===key+"#"+p.id), m=presetMatches(key,p);
-    return `<div class="preset" style="--c:${p.color}"><div class="top"><span class="name">${esc(p.name)}</span>${m?`<span class="chip" style="color:${p.color}">انتخاب ملتا ہے</span>`:""}</div><p>${esc(p.note)}</p><div class="btns"><button class="btn" data-preset="${key}#${p.id}">یہ قراءت لگائیں</button>${has?`<button class="btn" data-unpreset="${key}#${p.id}">اس کے لنک ہٹائیں</button>`:""}</div></div>`;
+    return `<div class="preset" style="--c:${p.color}"><div class="top"><span class="name">${esc(p.name)}</span>${m?`<span class="chip" style="color:${p.color}">انتخاب ملتا ہے</span>`:""}</div><p>${esc(p.note)}</p><div class="btns"><button class="btn sm" data-preset="${key}#${p.id}">یہ قراءت لگائیں</button>${has?`<button class="btn sm ghost" data-unpreset="${key}#${p.id}">اس کے لنک ہٹائیں</button>`:""}</div></div>`;
   })).join("");
 }
 function renderPanel(){ renderChips(); renderTiles(); renderReading(); renderDetail(); renderChains(); renderPresets(); renderTafsir(); }
@@ -587,7 +613,7 @@ function removeAyah(key){
 function setFocus(w,k){
   focus={w,k};
   const key=akey(w); if(!MORPH[key]) loadMorph(key,true).then(()=>{ updateCards(); renderDetail(); }, e=>{ MORPH_ERR[key]=e.message; renderDetail(); });
-  updateCards(); drawLinks(); renderDetail(); renderTafsir(); renderChains();
+  updateCards(); drawLinks(); renderDetail(); renderTafsir(); renderChains(); renderChips();
 }
 function scrollToDetail(){ $("detail").closest("section").scrollIntoView({block: isMobile() ? "start" : "nearest", behavior:"smooth"}); }
 function choose(w,k){
@@ -722,8 +748,8 @@ const isDark=()=> root.dataset.theme ? root.dataset.theme==="dark" : matchMedia(
 function setTheme(t){
   if(t) root.dataset.theme=t;
   const d=isDark(), b=$("theme");
-  b.textContent = d ? "☀\uFE0E" : "☾"; b.title = d ? "لائٹ تھیم" : "ڈارک تھیم"; b.setAttribute("aria-label", b.title);
-  $("themeColor").content = d ? "#10141c" : "#eef1f5";   /* phone status bar follows the theme */
+  b.innerHTML = d ? ICON.sun : ICON.moon; b.title = d ? "لائٹ تھیم" : "ڈارک تھیم"; b.setAttribute("aria-label", b.title);
+  $("themeColor").content = d ? "#111318" : "#f4f1ea";   /* phone status bar follows the theme */
 }
 $("theme").onclick=()=>{ S.theme = isDark() ? "light" : "dark"; setTheme(S.theme); save(); };
 $("zin").onclick=()=>zoomAt(1.2);
@@ -732,7 +758,13 @@ $("fit").onclick=fit;
 $("relayout").onclick=()=>{ S.pos={}; save(); renderAll(); fit(); };
 $("linkMode").onclick=()=>setLinkFrom(null);
 $("delLink").onclick=()=>{ if(selLink){ removeLink(selLink); save(); renderAll(); } };
-MCP.onQueue = n => { const s=$("status"); s.hidden=!n; s.textContent=`quran.ai سے ڈیٹا آ رہا ہے… (${n})`; };
+MCP.onQueue = n => { const s=$("status"); s.hidden=!n; s.replaceChildren(el("span","spin"), `quran.ai سے ڈیٹا آ رہا ہے… (${n})`); };
+/* Backspace / Delete removes the selected link (not while typing in a field) */
+addEventListener("keydown", e=>{
+  if(!selLink || (e.key!=="Delete" && e.key!=="Backspace")) return;
+  if(e.target.closest?.("input,textarea,select,[contenteditable]")) return;
+  e.preventDefault(); removeLink(selLink); save(); renderAll();
+});
 
 /* panel/canvas divider: panel sits on the right (rtl), so dragging left widens it */
 const app=document.querySelector(".app"), split=$("split");
@@ -751,7 +783,7 @@ let drag=null, dropEl=null, raf=0, lastEv=null;
 const pts=new Map();   /* pointers currently down on the stage; two = pinch */
 function pinchState(){ const [a,b]=[...pts.values()]; return {mx:(a.x+b.x)/2, my:(a.y+b.y)/2, dist:Math.hypot(a.x-b.x,a.y-b.y)||1}; }
 stage.addEventListener("pointerdown", e=>{
-  if(e.target.closest(".toolbar")) return;
+  if(e.target.closest(".toolbar,.floatbar,.hint button")) return;
   if(e.isPrimary) pts.clear();   /* a new gesture: drop any pointer whose up we missed */
   const pill=e.target.closest(".pill"), head=e.target.closest(".head"), hit=e.target.closest("path.h"), title=e.target.closest(".atitle");
   if(hit && !pts.size) return;
@@ -769,7 +801,12 @@ stage.addEventListener("pointerdown", e=>{
   else { drag={type:"pan", sx:e.clientX, sy:e.clientY, vx:S.view.x, vy:S.view.y, moved:false, title:title?.dataset.key}; stage.classList.add("panning"); }
 });
 /* on phones the hint covers cards; it has done its job once the user touches the canvas */
-stage.addEventListener("pointerdown", e=>{ if(e.pointerType==="touch") stage.querySelector(".hint").hidden=true; }, {once:true});
+/* usage hint: open with gold ripples for a visitor's first 5 minutes (counted once, across visits),
+   then — or when they press × — it folds into a small "!" that reopens it */
+const hint=$("hint"), HINT_MS=5*60*1000; let hintTimer=0;
+function setHint(open, waves){ clearTimeout(hintTimer); hint.classList.toggle("closed", !open); hint.classList.toggle("waves", !!(open && waves)); }
+$("hintClose").onclick=()=>{ S.hintUntil=0; save(); setHint(false); };
+$("hintOpen").onclick=()=>setHint(true, false);
 /* pointermove fires several times per frame; do the work (SVG rebuild, hit-test) at most once per frame */
 stage.addEventListener("pointermove", e=>{
   if(pts.has(e.pointerId)) pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
@@ -862,11 +899,11 @@ stage.addEventListener("keydown", e=>{
 /* ================= init ================= */
 $("surahSel").innerHTML = SURAHS.map((s,i)=>`<option value="${i+1}">${i+1}. ${esc(s[0])} · ${esc(s[1])} (${s[3]})</option>`).join("");
 $("surahSel").value="2";
-$("trChecks").innerHTML = TRANS.map(([id,lang,name])=>`<label><input type="checkbox" data-tr="${id}"> ${esc(name)}<span class="muted">${lang==="ur"?"":" · EN"}</span></label>`).join("");
+$("trChecks").innerHTML = TRANS.map(([id,lang,name])=>`<label><input type="checkbox" data-tr="${id}"> ${lang==="en"?`<span class="lat">${esc(name)}</span>`:esc(name)}</label>`).join("");
 $("tafsirSel").innerHTML = [["ar","عربی تفاسیر (quran.ai)"],["ur","اردو تفاسیر (Quran.com)"],["en","English (quran.ai)"]].map(([lang,label])=>
   `<optgroup label="${label}">${TAFSIRS.filter(t=>t[2]===lang).map(t=>`<option value="${t[0]}">${esc(t[1])}</option>`).join("")}</optgroup>`).join("");
-$("legend").innerHTML = Object.entries(SRC).map(([k,v])=>`<span><i style="background:var(--s-${k})"></i>${esc(v)}</span>`).join("")+`<span><i style="background:var(--gold)"></i>آپ کے لنک</span><span><i style="background:var(--same)"></i>ایک ہی مادہ</span>`;
-$("curSources").innerHTML = Object.entries(CUR).map(([key,c])=>`<p style="margin:8px 0 0">${key} کے ہاتھ سے چنے گئے معانی صرف ان تفاسیر سے لیے گئے ہیں:</p><ul>${c.sources.map(([n,u])=>`<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a></li>`).join("")}</ul>`).join("");
+$("legend").innerHTML = Object.entries(SRC).map(([k,v])=>`<span><span class="dot" style="background:var(--s-${k})"></span>${esc(v)}</span>`).join("")+`<span><span class="dot" style="background:var(--gold)"></span>آپ کے لنک</span><span><span class="dot" style="background:var(--same)"></span>ایک ہی مادہ</span>`;
+$("curSources").innerHTML = Object.entries(CUR).map(([key,c])=>`<p>${key} کے ہاتھ سے چنے گئے معانی صرف ان تفاسیر سے لیے گئے ہیں:</p><ul>${c.sources.map(([n,u])=>`<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a></li>`).join("")}</ul>`).join("");
 
 const saved=store.get(), fresh=!(saved && Array.isArray(saved.ayahs));
 /* saved state may come from an older version or be hand-edited: keep only well-formed parts */
@@ -881,11 +918,15 @@ function sanitize(x){
   if(Array.isArray(x.tr)) o.tr=x.tr.filter(id=>TRANS.some(t=>t[0]===id));
   if(TAFSIRS.some(t=>t[0]===x.tafsir)) o.tafsir=x.tafsir;
   if(typeof x.showEn==="boolean") o.showEn=x.showEn;
+  if(Number.isFinite(x.hintUntil)) o.hintUntil=x.hintUntil;
   return o;
 }
 if(!fresh) S=Object.assign(S, sanitize(saved));
 setTheme(S.theme);
 if(S.pw) setPW(S.pw);
+if(S.hintUntil==null){ S.hintUntil=Date.now()+HINT_MS; save(); }
+{ const left=S.hintUntil-Date.now();
+  if(left>0){ setHint(true, true); hintTimer=setTimeout(()=>setHint(false), left); } else setHint(false); }
 $("showEn").checked=!!S.showEn;
 $("tafsirSel").value=S.tafsir;
 for(const i of $("trChecks").querySelectorAll("input")) i.checked=S.tr.includes(+i.dataset.tr);

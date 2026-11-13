@@ -9,7 +9,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>قرآنی الفاظ: معنی، مادہ اور مقامات</title>
 <meta name="description" content="قرآن کی کسی بھی آیت کے ہر لفظ کے معانی چنیں اور جوڑیں، ہر لفظ کا مادہ اور صرف دیکھیں، اور اسی مادے کے تمام قرآنی مقامات تلاش کریں۔ جلالین، قرطبی، ابو حیان، ابن کثیر سمیت تفاسیر۔">
-<meta name="theme-color" content="#eef1f5" id="themeColor">
+<meta name="theme-color" content="#f4f1ea" id="themeColor">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -34,72 +34,76 @@
 <body>
 <div class="app">
   <aside class="panel" id="panel">
-    <header>
-      <h1>قرآنی الفاظ: معنی، مادہ اور مقامات</h1>
-      <p class="sub">آیات شامل کریں، ہر لفظ کا ایک معنی چنیں، اور معانی کو لکیروں سے جوڑ کر دیکھیں کہ مطلب کیسے بدلتا ہے۔ کسی لفظ پر ٹیپ کریں تو اس کا مادہ اور قرآن میں اس مادے کے تمام مقامات دکھیں گے۔</p>
+    <header class="brand">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect class="lg-bg" x="1.5" y="1.5" width="61" height="61" rx="14" stroke-width="2"/><g class="lg-ink" stroke-width="3" stroke-linecap="round"><path d="M31 22H46"/><path d="M23 32H46"/><path d="M27 42H46"/></g><path class="lg-gold" d="M30 22C12 22 12 42 26 42" fill="none" stroke-width="2.8" stroke-linecap="round"/><circle class="lg-dot" cx="30" cy="22" r="3.8"/><circle class="lg-dot" cx="26" cy="42" r="3.8"/></svg>
+      <div><h1>قرآنی الفاظ</h1><p>معنی، مادہ اور مقامات</p></div>
     </header>
+    <p class="intro">آیات شامل کریں، ہر لفظ کا ایک معنی چنیں، اور معانی کو لکیروں سے جوڑ کر دیکھیں کہ مطلب کیسے بدلتا ہے۔ کسی لفظ پر ٹیپ کریں تو اس کا مادہ اور قرآن میں اس مادے کے تمام مقامات دکھیں گے۔</p>
 
-    <section>
-      <h2>آیات</h2>
+    <section class="sec" aria-labelledby="h-ayat">
+      <div class="sec-h"><h2 id="h-ayat">آیات</h2><div class="stats" id="tiles"></div></div>
       <form class="addform" id="addForm">
-        <input id="surahFind" type="search" autocomplete="off" placeholder="سورہ: نمبر یا نام" aria-label="سورہ کا نمبر یا نام لکھیں">
-        <select id="surahSel" aria-label="سورہ"></select>
-        <input id="ayahFrom" type="text" inputmode="numeric" autocomplete="off" placeholder="آیت" aria-label="آیت نمبر، یا سیدھا 2:255 لکھیں">
-        <input id="ayahTo" type="text" inputmode="numeric" autocomplete="off" placeholder="تک" aria-label="آخری آیت (اختیاری)">
-        <button class="btn primary" type="submit">شامل کریں</button>
+        <div class="search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="surahFind" type="search" autocomplete="off" placeholder="سورہ کا نمبر یا نام" aria-label="سورہ کا نمبر یا نام لکھیں"></div>
+        <div class="select"><select id="surahSel" aria-label="سورہ"></select></div>
+        <div class="row">
+          <input id="ayahFrom" type="text" inputmode="numeric" autocomplete="off" placeholder="آیت (یا 2:255)" aria-label="آیت نمبر، یا سیدھا 2:255 لکھیں">
+          <input id="ayahTo" type="text" inputmode="numeric" autocomplete="off" placeholder="تک (اختیاری)" aria-label="آخری آیت (اختیاری)">
+          <button class="btn primary" type="submit"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>شامل کریں</button>
+        </div>
       </form>
       <div class="msg" id="addMsg"></div>
       <div class="chips" id="ayahChips"></div>
     </section>
 
-    <div class="tiles" id="tiles"></div>
-
-    <section>
-      <h2>منتخب لفظ</h2>
+    <section class="sec" aria-labelledby="h-word">
+      <div class="sec-h"><h2 id="h-word">منتخب لفظ</h2></div>
       <div class="detail" id="detail"></div>
     </section>
 
-    <section>
-      <h2>آپ کے انتخاب سے بنتا مطلب (لفظ بہ لفظ)</h2>
+    <section class="sec" aria-labelledby="h-read">
+      <div class="sec-h"><h2 id="h-read">آیات اور آپ کا مطلب</h2></div>
+      <p class="sec-note">ہر آیت کے نیچے لفظ بہ لفظ وہ مطلب ہے جو آپ کے چنے ہوئے معانی سے بنتا ہے۔</p>
       <div id="reading"></div>
     </section>
 
-    <details open id="tafsirSec">
-      <summary>تفسیر</summary>
-      <select class="field" id="tafsirSel" aria-label="تفسیر چنیں"></select>
-      <div class="meta" id="tafsirMeta" style="margin:6px 0"></div>
+    <details class="sec" open id="tafsirSec">
+      <summary class="sec-h"><h2>تفسیر</h2></summary>
+      <div class="select"><select id="tafsirSel" aria-label="تفسیر چنیں"></select></div>
+      <div class="taf-meta" id="tafsirMeta"></div>
       <div class="tafsir" id="tafsir"></div>
     </details>
 
-    <details open>
-      <summary>آپ کی زنجیریں</summary>
+    <details class="sec" open>
+      <summary class="sec-h"><h2>آپ کی زنجیریں</h2></summary>
       <div id="chains"></div>
-      <div class="btns" style="margin-top:8px">
-        <button class="btn" id="copyBtn">زنجیریں کاپی کریں</button>
-        <button class="btn danger" id="clearBtn">لنک اور انتخاب صاف کریں</button>
+      <div class="chain-actions">
+        <button class="btn sm" id="copyBtn"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>زنجیریں کاپی کریں</button>
+        <button class="btn sm danger" id="clearBtn">لنک اور انتخاب صاف کریں</button>
       </div>
       <div class="msg" id="msg"></div>
     </details>
 
-    <details open id="presetSec" hidden>
-      <summary>مفسرین کی قراءتیں (البقرہ 2:102)</summary>
+    <details class="sec" open id="presetSec" hidden>
+      <summary class="sec-h"><h2>مفسرین کی قراءتیں</h2><span class="tag lat">2:102</span></summary>
       <div class="presets" id="presets"></div>
     </details>
 
-    <details>
-      <summary>ترجمے اور ترتیبات</summary>
+    <details class="sec">
+      <summary class="sec-h"><h2>ترجمے اور ترتیبات</h2></summary>
+      <div class="subh">آیات کے نیچے دکھائے جانے والے ترجمے</div>
       <div class="checks" id="trChecks"></div>
-      <label style="display:flex;gap:6px;align-items:center;margin-top:8px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="showEn"> کارڈ پر انگریزی لفظی معنی بھی دکھائیں</label>
+      <div class="subh">کارڈ</div>
+      <label class="toggle-row"><input type="checkbox" id="showEn"> کارڈ پر انگریزی لفظی معنی بھی دکھائیں</label>
     </details>
 
-    <details>
-      <summary>رنگ کس ماخذ کا ہے</summary>
+    <details class="sec">
+      <summary class="sec-h"><h2>رنگ کس ماخذ کا ہے</h2></summary>
       <div class="legend" id="legend"></div>
     </details>
 
-    <details class="sources">
-      <summary>ماخذ اور اعتبار</summary>
-      <p style="margin:0">قرآن کا متن، لفظی ترجمے (اردو، انگریزی) اور آیات کے ترجمے <a href="https://quran.com" target="_blank" rel="noopener">Quran.com</a> (Quran Foundation) کے API سے براہِ راست آتے ہیں۔ ہر لفظ کا مادہ، لیما، صرفی تجزیہ، مادے کی گنتی اور تمام مقامات، اور عربی و انگریزی تفاسیر <a href="https://quran.ai" target="_blank" rel="noopener">quran.ai</a> کے MCP سرور سے آتی ہیں، جس کا صرفی ڈیٹا <a href="https://corpus.quran.com" target="_blank" rel="noopener">Quranic Arabic Corpus</a> پر مبنی ہے۔ اردو تفاسیر Quran.com سے ہیں۔</p>
+    <details class="sec sources">
+      <summary class="sec-h"><h2>ماخذ اور اعتبار</h2></summary>
+      <p>قرآن کا متن، لفظی ترجمے (اردو، انگریزی) اور آیات کے ترجمے <a href="https://quran.com" target="_blank" rel="noopener">Quran.com</a> (Quran Foundation) کے API سے براہِ راست آتے ہیں۔ ہر لفظ کا مادہ، لیما، صرفی تجزیہ، مادے کی گنتی اور تمام مقامات، اور عربی و انگریزی تفاسیر <a href="https://quran.ai" target="_blank" rel="noopener">quran.ai</a> کے MCP سرور سے آتی ہیں، جس کا صرفی ڈیٹا <a href="https://corpus.quran.com" target="_blank" rel="noopener">Quranic Arabic Corpus</a> پر مبنی ہے۔ اردو تفاسیر Quran.com سے ہیں۔</p>
       <p>"لفظ بہ لفظ" مطلب آپ کے انتخاب کا ایک خاکہ ہے، تفسیر نہیں۔ آپ کے اپنے لکھے معانی صرف آپ کے براؤزر میں محفوظ ہوتے ہیں۔</p>
       <div id="curSources"></div>
     </details>
@@ -108,19 +112,29 @@
 
   <main class="stage" id="stage" aria-label="معانی کا کینوس">
     <div class="toolbar">
-      <button class="btn primary" id="linkMode" hidden>لنک: اب دوسرے لفظ کا پِل چنیں ✕</button>
-      <button class="btn danger" id="delLink" hidden>✕ منتخب لنک ہٹائیں</button>
-      <button class="btn" id="theme"></button>
-      <button class="btn" id="zin" aria-label="قریب کریں">+</button>
-      <button class="btn" id="zout" aria-label="دور کریں">−</button>
-      <button class="btn" id="fit">پورا دکھائیں</button>
-      <button class="btn" id="relayout">ترتیب بحال کریں</button>
+      <div class="tgroup"><button class="tbtn" id="theme"></button></div>
+      <div class="tgroup">
+        <button class="tbtn" id="zin" aria-label="قریب کریں" title="قریب کریں"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="tbtn" id="zout" aria-label="دور کریں" title="دور کریں"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      </div>
+      <div class="tgroup">
+        <button class="tbtn" id="fit" title="سب کچھ اسکرین پر دکھائیں"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>پورا دکھائیں</span></button>
+        <button class="tbtn" id="relayout" title="کارڈ اپنی اصل جگہ پر واپس"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg><span>ترتیب بحال کریں</span></button>
+      </div>
+    </div>
+    <div class="floatbar">
+      <button class="btn primary" id="linkMode" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>اب دوسرے لفظ کا پِل چنیں<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      <button class="btn danger" id="delLink" hidden title="Delete یا Backspace"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>منتخب لنک ہٹائیں<span class="kbd lat">Del</span></button>
     </div>
     <div class="status" id="status" hidden></div>
     <div class="world" id="world">
       <svg class="links" id="links" width="10" height="10"></svg>
     </div>
-    <div class="hint"><span class="h-fine">پِل پر کلک: معنی چنیں · لفظ پر کلک: مادہ اور مقامات · پِل کھینچ کر دوسرے پِل پر چھوڑیں: لنک · لفظ کھینچیں: کارڈ ہلائیں · خالی جگہ کھینچیں یا اسکرول: کینوس ہلائیں · پنچ یا Ctrl+اسکرول: زوم</span><span class="h-touch">پِل پر ٹیپ: معنی چنیں · لفظ پر ٹیپ: مادہ اور مقامات · ایک انگلی: کینوس ہلائیں · دو انگلیاں: زوم · لنک: پِل چنیں، پھر "اس سے لنک بنائیں"</span></div>
+    <div class="hint" id="hint" role="note">
+      <span class="hint-text"><span class="h-fine">پِل پر کلک: معنی چنیں · لفظ پر کلک: تفصیل · پِل کو دوسرے پِل پر کھینچیں: لنک · پنچ یا Ctrl + اسکرول: زوم</span><span class="h-touch">پِل پر ٹیپ: معنی · لفظ پر ٹیپ: تفصیل · دو انگلیاں: زوم</span></span>
+      <button class="hint-x" id="hintClose" type="button" aria-label="ہدایات بند کریں" title="بند کریں"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      <button class="hint-i" id="hintOpen" type="button" aria-label="ہدایات دکھائیں" title="ہدایات">!</button>
+    </div>
   </main>
 </div>
 <noscript><p style="padding:16px">یہ صفحہ JavaScript کے بغیر نہیں چلتا۔</p></noscript>
